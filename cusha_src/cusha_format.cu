@@ -52,12 +52,16 @@ void cusha_format::process(
 	if( sizeof(Vertex_static) > 1 ) tmpVertexValueStatic.resize( nVertices );
 	std::vector< std::vector<shard_entry> > graphWindows( nShards * nShards, std::vector<shard_entry>( 0 ) );
 
+	unsigned int *adj_deg;
+	cudaMallocHost((void **)&adj_deg, sizeof(unsigned int)*nVerticesInitially);
+
 	// Collecting graph data into shard form.
 	for( uint vIdx = 0; vIdx < nVerticesInitially; ++vIdx ) {
 		initial_vertex& vvv = initGraph->at(vIdx);
 		vertexValue[ vIdx ] = vvv.vertexValue;
 		if( sizeof(Vertex_static) > 1 ) tmpVertexValueStatic[ vIdx ] = vvv.VertexValueStatic;
 		uint nNbrs = vvv.nbrs.size();
+		adj_deg[vIdx] = nNbrs;
 		for( uint nbrIdx = 0; nbrIdx < nNbrs; ++nbrIdx ) {
 			neighbor& nbr = vvv.nbrs.at( nbrIdx );
 			shard_entry tmpShardEntry;
@@ -69,6 +73,7 @@ void cusha_format::process(
 			graphWindows.at( belongingShardIdx * nShards + belongingWindowIdx ).push_back( tmpShardEntry );
 		}
 	}
+
 	initGraph->clear();
 	// no need to sort inside a window.
 
@@ -220,5 +225,14 @@ void cusha_format::process(
 				vvv,
 				vertexValue[ vvv ],
 				outputFile	);
+	unsigned int tr_edges = 0;
+	for(uint i = 0; i < nVerticesInitially; i++){
+		if(vertexValue[i].distance != BFS_INF){
+			
+			tr_edges += adj_deg[i];
+		}
+	}
+	std::cout << "GTEPS: " << ((double) tr_edges / 1000000000.0) / (processing_time / 1000.0) << std::endl;
+	cudaFree(adj_deg);
 
 }
