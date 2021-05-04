@@ -232,7 +232,11 @@ void cusha_format::process(
 			tr_edges += adj_deg[i];
 		}
 	}
-	std::cout << "GTEPS: " << ((double) tr_edges / 1000000000.0) / (processing_time / 1000.0) << std::endl;
+	double t_elpd = processing_time / 1000.0;
+	double gteps = (double) (tr_edges / t_elpd) / 1000000000;
+	std::cout << "Consumed time (s): " << t_elpd << std::endl;
+	std::cout << "Traversed edges: " << tr_edges << std::endl;
+	std::cout << "GTEPS: " << gteps << std::endl;
 	cudaFree(adj_deg);
 
 }
