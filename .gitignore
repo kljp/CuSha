@@ -22,6 +22,6 @@
 *.x86_64
 *.hex
 
-#etc
-out.txt
-cusha
+# etc
+./out.txt
+./cusha
